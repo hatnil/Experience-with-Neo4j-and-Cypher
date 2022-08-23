@@ -1,0 +1,41 @@
+Query to find the names of people who work in the same place (e.g. Gothenburg) where they graduated:
+
+MATCH (person:Person)—[:employeeOf]->(org:Organisation),(org:Organisation)-[:locatedIn]->(placeorg:Place) ,
+(person:Person)—[:alumnusOf]->(uniorg:Organisation),(uniorg:Organisation)-[:locatedIn]->(placeuni:Place) 
+WHERE placeuni.placeName=placeorg.placeName  // work in the same place  where they graduated
+//WHERE placeuni.placeName="Gothenburg" and placeorg.placeName="Gothenburg" will return  work and graduated in Gothenburg
+RETURN person.personName as Person ,org.organisationName as organisationName, uniorg.organisationName as universityName, placeorg.placeName as organisationPlace, placeuni.placeName as universityPlace
+
+
+
+Query to find which Chalmers alumni are employed by each organization.
+
+MATCH (person:Person)—[:employeeOf]->(org:Organisation) ,
+(person:Person)—[:alumnusOf]->(uni:Organisation{organisationName:"Chalmers University of Technology"})
+RETURN person.personName as Person ,org.organisationName as organisationName, uni.organisationName as universityName
+
+
+
+Query to count the number of Chalmers alumni are employed by each organization.
+
+MATCH (person:Person)—[:employeeOf]->(org:Organisation) ,
+(person:Person)—[:alumnusOf]->(uni:Organisation{organisationName:"Chalmers University of Technology"})
+RETURN org.organisationName as organisation_name, count(person) as number_of_Chalmers_alumni 
+ORDER BY (number_of_Chalmers_alumni) //ordering
+
+
+
+
+Query to calculate the age of Swedish universities and define status as “oldest”,”old”,”new” and “newest”:
+
+MATCH (uni:Organisation)-[:locatedIn]-(place:Place{countryName:"Sweden"})
+WHERE uni.yearFounded is not null
+RETURN  uni.organisationName as University,2020-toInteger(uni.yearFounded) as AGE,
+CASE
+WHEN (2020-toInteger(uni.yearFounded))>=300
+THEN "OLDEST"
+WHEN 300>(2020-toInteger(uni.yearFounded))>=150
+THEN "OLD"
+WHEN 150>(2020-toInteger(uni.yearFounded))>=50
+THEN "NEW"
+ELSE  "NEWEST" END AS STATUS
